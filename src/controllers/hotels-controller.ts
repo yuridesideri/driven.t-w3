@@ -27,6 +27,7 @@ export async function getHotelById(req: AuthenticatedRequest, res: Response): Pr
         const { userId } = req;
         await checkTicketForHotelService(userId);
         const hotel = getHotelWithRoomsByIdRepo(Number(hotelId));
+        if (!hotel) throw httpStatus.NOT_FOUND;
         res.status(HttpStatusCode.Ok).send(hotel)
     }catch (err){
         console.error(err)
