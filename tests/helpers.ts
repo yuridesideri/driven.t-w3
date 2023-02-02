@@ -1,17 +1,11 @@
 import * as jwt from "jsonwebtoken";
 import { TicketStatus, User } from "@prisma/client";
-
 import { createEnrollmentWithAddress, createTicket, createTicketType, createUser } from "./factories";
 import { createSession } from "./factories/sessions-factory";
 import { prisma } from "@/config";
 import httpStatus from "http-status";
 import faker from "@faker-js/faker";
-import supertest from "supertest";
-import app from "./app";
 import { superTestMethod } from "./types/types-helper";
-import { HttpStatusCode } from "axios";
-
-const server = supertest(app);
 
 export async function cleanDb() {
   await prisma.address.deleteMany({});
@@ -22,6 +16,7 @@ export async function cleanDb() {
   await prisma.session.deleteMany({});
   await prisma.user.deleteMany({});
   await prisma.ticketType.deleteMany({});
+  await prisma.hotel.deleteMany({});
 }
 
 export async function generateValidToken(user?: User) {
@@ -71,7 +66,7 @@ export function testingTicketForHotel(serverMethod: superTestMethod, route: stri
 
       const response = await serverMethod(route).set('Authorization', `Bearer ${validToken}`);
 
-      expect(response.status).toBe(HttpStatusCode.PaymentRequired);
+      expect(response.status).toBe(httpStatus.PAYMENT_REQUIRED);
     });
 
     it('should respond with Require Payment(402) when ticket is not paid', async () => {
@@ -83,7 +78,7 @@ export function testingTicketForHotel(serverMethod: superTestMethod, route: stri
 
       const response = await serverMethod(route).set('Authorization', `Bearer ${validToken}`);
 
-      expect(response.status).toBe(HttpStatusCode.PaymentRequired);
+      expect(response.status).toBe(httpStatus.PAYMENT_REQUIRED);
     });
 
     it ('should repond with Require Payment(402) when ticket is remote', async () => {
@@ -95,7 +90,7 @@ export function testingTicketForHotel(serverMethod: superTestMethod, route: stri
 
       const response = await serverMethod(route).set('Authorization', `Bearer ${validToken}`);
 
-      expect(response.status).toBe(HttpStatusCode.PaymentRequired);
+      expect(response.status).toBe(httpStatus.PAYMENT_REQUIRED);
     })
   })
 }

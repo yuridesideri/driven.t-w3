@@ -1,7 +1,6 @@
 import { AuthenticatedRequest } from "@/middlewares"
 import { getHotelWithRoomsByIdRepo } from "@/repositories/hotels-repository";
-import { checkTicketForHotelService, getHotelsService } from "@/services";
-import { HttpStatusCode } from "axios";
+import { checkTicketForHotelService, getHotelByIdService, getHotelsService } from "@/services";
 import { Response } from "express"
 import httpStatus from "http-status";
 
@@ -10,11 +9,11 @@ export async function getHotels(req: AuthenticatedRequest, res: Response): Promi
     try {
         const { userId } = req;
         await checkTicketForHotelService(userId);
-        const hotels = getHotelsService();
-        res.status(HttpStatusCode.Ok).send(hotels)
+        const hotels = await getHotelsService();
+        res.status(httpStatus.OK).send(hotels)
     }catch (err){
         console.error(err)
-        res.status(err.status || HttpStatusCode.BadRequest)
+        res.status(err.status || httpStatus.BAD_REQUEST)
         return res.send(err)
     }
 }
@@ -26,12 +25,11 @@ export async function getHotelById(req: AuthenticatedRequest, res: Response): Pr
         const { hotelId } = req.params;
         const { userId } = req;
         await checkTicketForHotelService(userId);
-        const hotel = getHotelWithRoomsByIdRepo(Number(hotelId));
-        if (!hotel) throw httpStatus.NOT_FOUND;
-        res.status(HttpStatusCode.Ok).send(hotel)
+        const hotel = await getHotelByIdService(Number(hotelId));
+        res.status(httpStatus.OK).send(hotel)
     }catch (err){
         console.error(err)
-        res.status(err.status || HttpStatusCode.BadRequest)
+        res.status(err.status || httpStatus.BAD_REQUEST)
         return res.send(err)
     }
 }

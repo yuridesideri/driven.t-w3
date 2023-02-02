@@ -1,6 +1,7 @@
 import app, { init } from '@/app';
 import { TicketStatus } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
+import httpStatus from 'http-status';
 import supertest from 'supertest';
 import { createEnrollmentWithAddress, createTicket, createTicketType, createUser } from '../factories';
 import { createHotelWithRooms } from '../factories/hotels-factory';
@@ -17,7 +18,7 @@ beforeEach(async () => {
 });
 
 describe('GET /hotels', () => {
-  describe('Testing user Authentication', async () => {
+  describe('Testing user Authentication', () => {
     testingToken(api.get, '/hotels');
   });
   describe('When token is valid', () => {
@@ -36,7 +37,7 @@ describe('GET /hotels', () => {
 
       const response = await api.get('/hotels').set('Authorization', `Bearer ${validToken}`);
 
-      expect(response.status).toBe(HttpStatusCode.Ok);
+      expect(response.status).toBe(httpStatus.OK);
 
       expect(response.body).toEqual([
         {
@@ -59,6 +60,7 @@ describe('GET /hotels/:id', () => {
     testingToken(api.get, '/hotels/:id');
 
     describe('When token is valid', () => {
+      
       testingTicketForHotel(api.get, '/hotels/1');
 
       it('should respond with NOT_FOUND(404) when hotel does not exist', async () => {
@@ -70,7 +72,7 @@ describe('GET /hotels/:id', () => {
 
         const response = await api.get('/hotels/1').set('Authorization', `Bearer ${validToken}`);
 
-        expect(response.status).toBe(HttpStatusCode.NotFound);
+        expect(response.status).toBe(httpStatus.NOT_FOUND);
       });
 
       it('should repond with OK(200) and hotel object with rooms', async () => {
@@ -83,7 +85,7 @@ describe('GET /hotels/:id', () => {
 
         const response = await api.get(`/hotels/${hotelWithRooms.id}`).set('Authorization', `Bearer ${validToken}`);
 
-        expect(response.status).toBe(HttpStatusCode.Ok);
+        expect(response.status).toBe(httpStatus.OK);
 
         expect(response.body).toEqual({
           ...hotelWithRooms,

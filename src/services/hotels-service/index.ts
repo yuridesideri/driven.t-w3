@@ -1,7 +1,7 @@
 import { requestError } from "@/errors";
-import { getHotelsRepo} from "@/repositories/hotels-repository";
+import { getHotelsRepo, getHotelWithRoomsByIdRepo} from "@/repositories/hotels-repository";
 import { TicketStatus } from "@prisma/client";
-import { HttpStatusCode } from "axios";
+import httpStatus from "http-status";
 import { getTicketByUserId } from "../tickets-service";
 
 export async function getHotelsService(){
@@ -9,11 +9,16 @@ export async function getHotelsService(){
     return hotels;
 }
 
+export async function getHotelByIdService(hotelId: number){
+    const hotel = await getHotelWithRoomsByIdRepo(hotelId);
+    if (!hotel) throw httpStatus.NOT_FOUND;
+    return hotel;
+}
+
 export async function checkTicketForHotelService(userId: number){
     const ticket = await getTicketByUserId(userId);
     const {TicketType} = ticket;
     if (!TicketType.includesHotel || TicketType.isRemote || ticket.status !== TicketStatus.PAID) {
-        throw requestError(HttpStatusCode.PaymentRequired, "You need to pay a ticket to access this resource");
+        throw requestError(httpStatus.PAYMENT_REQUIRED, "You need to pay a ticket to access this resource");
     }
-    
 }
