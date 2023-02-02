@@ -56,32 +56,21 @@ describe('GET /hotels', () => {
 
 describe('GET /hotels/:id', () => {
   describe('Testing user Authentication', () => {
-
     testingToken(api.get, '/hotels/:id');
 
     describe('When token is valid', () => {
-      it("should respond with Forbbiden(403) when ticket doesn't have hotel included", async () => {
+      testingTicketForHotel(api.get, '/hotels/1');
+
+      it('should respond with NOT_FOUND(404) when hotel does not exist', async () => {
         const user = await createUser();
-        const validToken = await generateValidToken(user);
         const enrollment = await createEnrollmentWithAddress(user);
-        const ticketType = await createTicketType(false);
+        const ticketType = await createTicketType(true, false);
         await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-
-        const response = await api.get('/hotels').set('Authorization', `Bearer ${validToken}`);
-
-        expect(response.status).toBe(HttpStatusCode.Forbidden);
-      });
-
-      it('should respond with BadRequest(400) when ticket is not paid', async () => {
-        const user = await createUser();
-        const enrollment = await createEnrollmentWithAddress(user);
         const validToken = await generateValidToken(user);
-        const ticketType = await createTicketType(true);
-        await createTicket(enrollment.id, ticketType.id, TicketStatus.RESERVED);
 
-        const response = await api.get('/hotels').set('Authorization', `Bearer ${validToken}`);
+        const response = await api.get('/hotels/1').set('Authorization', `Bearer ${validToken}`);
 
-        expect(response.status).toBe(HttpStatusCode.BadRequest);
+        expect(response.status).toBe(HttpStatusCode.NotFound);
       });
 
       it('should repond with OK(200) and hotel object with rooms', async () => {
@@ -96,13 +85,16 @@ describe('GET /hotels/:id', () => {
 
         expect(response.status).toBe(HttpStatusCode.Ok);
 
-        expect(response.body).toEqual(
-          {
-            ...hotelWithRooms,
-            createdAt: hotelWithRooms.createdAt.toISOString(),
-            updatedAt: hotelWithRooms.updatedAt.toISOString(),
-          },
-        );
+        expect(response.body).toEqual({
+          ...hotelWithRooms,
+          Rooms: hotelWithRooms.Rooms.map((room) => ({
+            createdAt: room.createdAt.toISOString(),
+            updatedAt: room.updatedAt.toISOString(),
+            ...room,
+          })),
+          createdAt: hotelWithRooms.createdAt.toISOString(),
+          updatedAt: hotelWithRooms.updatedAt.toISOString(),
+        });
       });
     });
   });
